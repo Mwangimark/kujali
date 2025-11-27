@@ -1,77 +1,41 @@
-<table mat-table #sort="matSort" [dataSource]="dataSource" multiTemplateDataRows class="mat-elevation-z8" matSort>
+<table class="budget-table">
 
-  <!-- name Column -->
-  <ng-container matColumnDef="name">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header> Budget Name </th>
-    <td mat-cell *matCellDef="let row">
-      {{row.name ? row.name : '-' }} <span *ngIf="row.childrenList?.length > 0" class="badge primary"
-        (click)="openChildBudgetDialog(row)"> Linked Budgets ({{ row?.childrenList?.length }}) </span>
-    </td>
-  </ng-container>
+  <!-- Table Header -->
+  <thead>
+    <tr>
+      <th (click)="sortData('name')">Budget Name</th>
+      <th (click)="sortData('status')">Status</th>
+      <th (click)="sortData('startYear')">Start Year</th>
+      <th (click)="sortData('duration')">Duration (Years)</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
 
-  <!-- status Column -->
-  <ng-container matColumnDef="status">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header> Status </th>
-    <td mat-cell *matCellDef="let row">
-      <span class="badge" [ngClass]="row.status == 1 ? 'active': 'draft'">
-        {{translateStatus(row.status) | transloco}}
-      </span>
-    </td>
-  </ng-container>
-
-  <!-- Start year Column -->
-  <ng-container matColumnDef="startYear">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header> Start Year </th>
-    <td mat-cell *matCellDef="let row"> {{row.startYear ? row.startYear : '-'}} </td>
-  </ng-container>
-
-  <!-- Duration Column -->
-  <ng-container matColumnDef="duration">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header> Duration (Years) </th>
-    <td mat-cell *matCellDef="let row"> {{row.duration ? row.duration : '-' }} </td>
-  </ng-container>
-
-  <!-- actions Column -->
-  <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef mat-sort-header> Actions </th>
-    <td mat-cell *matCellDef="let row">
-      <div class="budget-btn-container" fxLayout="row" fxLayoutALign="start center" fxLayoutGap="10px">
-
-        <button color="primary" class="secondary-action" mat-mini-fab (click)="openCloneBudgetDialog(row)"
-          matTooltip="{{ 'BUDGET.VIEW-RECORD.ACTIONS.CLONE'| transloco }}" *ngIf="access('clone')">
-          <i class="fas fa-copy fa-sm"></i>
-        </button>
-
-        <button color="primary" class="secondary-action" mat-mini-fab
-          matTooltip="{{'BUDGET.VIEW-RECORD.ACTIONS.VIEW' | transloco}}" (click)="goToDetail(row.id!, 'view')"
-          *ngIf="access('view')">
-          <i class="fas fa-eye fa-sm"></i>
-        </button>
-
-        <button color="primary" mat-mini-fab matTooltip="{{ 'BUDGET.VIEW-RECORD.ACTIONS.EDIT' | transloco }}"
-          color="primary" (click)="goToDetail(row.id!, 'edit')" *ngIf="access('edit')">
-          <i class="fas fa-edit fa-sm"></i>
-        </button>
-
-        <!-- <button color="primary" class="secondary-action"
-          matTooltip="{{ 'BUDGET.VIEW-RECORD.ACTIONS.SHARE' | transloco }}" mat-mini-fab
-          (click)="openShareBudgetDialog(row)">
-          <i class="fas fa-share-alt fa-sm"></i>
-        </button> -->
-
-        <button color="primary" class="delete-btn" matTooltip="Delete" mat-mini-fab
-          (click)="openShareBudgetDialog(row)">
-          <i class="fas fa-trash-alt fa-sm"></i>
-        </button>
-
-        <!-- Will only be true on parent since does not get cascaded down below. -->
-        <!-- <div class="budget-btn-container" style="float: right; text-align: right">
-          <button class="btn-promote" (click)="promote()">{{ 'BUDGET.VIEW-RECORD.PROMOTE' | transloco }}</button>
-        </div> -->
-      </div>
-    </td>
-  </ng-container>
-  <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  <!-- Table Body -->
+  <tbody>
+    <tr *ngFor="let row of sortedBudgets()">
+      <td>
+        {{ row.name || '-' }}
+        <span *ngIf="row.childrenList?.length > 0" class="badge primary"
+              (click)="openChildBudgetDialog(row)">
+          Linked Budgets ({{ row.childrenList.length }})
+        </span>
+      </td>
+      <td>
+        <span class="badge" [class.active]="row.status === 1" [class.draft]="row.status !== 1">
+          {{ translateStatus(row.status) | transloco }}
+        </span>
+      </td>
+      <td>{{ row.startYear || '-' }}</td>
+      <td>{{ row.duration || '-' }}</td>
+      <td>
+        <div class="budget-btn-container">
+          <button (click)="openCloneBudgetDialog(row)" *ngIf="access('clone')">Clone</button>
+          <button (click)="goToDetail(row.id!, 'view')" *ngIf="access('view')">View</button>
+          <button (click)="goToDetail(row.id!, 'edit')" *ngIf="access('edit')">Edit</button>
+          <button (click)="openShareBudgetDialog(row)">Delete</button>
+        </div>
+      </td>
+    </tr>
+  </tbody>
 </table>
-<mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Select page of users"></mat-paginator>
